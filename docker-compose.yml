@@ -18,6 +18,7 @@ services:
       - '${POSTGRES_PORT:-5433}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data # הנתונים נשמרים גם אחרי כיבוי הקונטיינר
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro # סקריפטי אתחול (יוצרים מסדי נתונים)
     healthcheck: # Docker יבדוק שה-DB באמת מוכן לקבל חיבורים
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 5s
@@ -49,5 +50,51 @@ services:
       retries: 5
       start_period: 20s # זמן חסד להתנעה (בנייה, מיגרציות)
 
+  minio:
+    image: minio/minio:latest
+    container_name: shaystream-minio
+    restart: unless-stopped
+    # server /data = מאחסן ב-/data. --console-address = הפורט של ממשק הווב.
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - '${MINIO_API_PORT:-9000}:9000' # S3 API — כאן השירותים מדברים עם MinIO
+      - '${MINIO_CONSOLE_PORT:-9001}:9001' # ממשק הווב — כאן *אתה* רואה את הקבצים
+    volumes:
+      - minio_data:/data # הקבצים שורדים גם אחרי כיבוי
+
+  media-service:
+    build:
+      context: ./services/media-service
+    container_name: shaystream-media
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    environment:
+      DATABASE_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/shaystream_media?schema=public'
+      JWT_SECRET: ${JWT_SECRET} # אותו secret כמו auth — כדי לאמת טוקנים
+      PORT: 3002
+      # בתוך רשת compose מדברים עם MinIO לפי שם השירות (minio) ופורט פנימי 9000
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: 'false'
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+    ports:
+      - '3002:3002'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3002/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
 volumes:
   postgres_data: # "named volume" מנוהל ע"י Docker — כאן חיים קבצי ה-DB
+  minio_data: # כאן MinIO שומר את קבצי הווידאו

@@ -1,0 +1,27 @@
+// Prisma schema — media-service (מסד נתונים נפרד: shaystream_media)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── מודל הווידאו ──
+// שים לב: כאן נשמרת רק ה-*מטא-דאטה*. הקובץ עצמו חי ב-MinIO,
+// ואנחנו מחזיקים רק את המפתח (objectKey) שמצביע אליו.
+model Video {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @default("")
+  ownerId     String // מזהה המשתמש שהעלה (מגיע מה-JWT — לא מטבלת users!)
+  objectKey   String   @unique // המפתח של הקובץ ב-MinIO bucket
+  contentType String // סוג התוכן, למשל "video/mp4"
+  sizeBytes   Int // גודל הקובץ בבייטים (ל-MVP; לקבצים >2GB נעבור ל-BigInt)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("videos")
+}
