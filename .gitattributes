@@ -1,0 +1,21 @@
+# ─────────────────────────────────────────────────────────────
+#  ShayStream — .gitattributes
+#  מנרמל סיומי-שורה כדי שקוד ייראה זהה על Windows ועל Linux (הקונטיינרים).
+# ─────────────────────────────────────────────────────────────
+
+# כל קובץ טקסט → סיום שורה LF (הסטנדרט של Linux/Docker).
+* text=auto eol=lf
+
+# קבצים בינאריים — Git לא נוגע בהם בכלל (לא ממיר שורות).
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.mp4   binary
+*.mov   binary
+*.webm  binary
+*.mp3   binary
+*.pdf   binary
+*.zip   binary

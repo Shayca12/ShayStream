@@ -1,0 +1,10 @@
+# מה לא להעתיק לתוך הדימוי (כמו .gitignore, אבל ל-Docker).
+# קריטי: node_modules ו-dist נבנים מחדש בתוך הקונטיינר —
+# אסור להעתיק את אלה של Windows לתוך לינוקס.
+node_modules
+dist
+generated
+.env
+*.log
+Dockerfile
+.dockerignore

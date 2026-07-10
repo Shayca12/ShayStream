@@ -1,0 +1,24 @@
+// Prisma schema — auth-service
+// כאן מגדירים את מבנה הנתונים. מהקובץ הזה Prisma מייצר קוד TypeScript
+// בטוח-טיפוסים לגישה ל-DB. הרצת `prisma migrate` תתרגם אותו לטבלאות SQL.
+
+generator client {
+  provider = "prisma-client-js" // מייצר את הלקוח ל-node_modules/@prisma/client
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // כתובת החיבור נלקחת מ-.env (לא מקודדת בקוד!)
+}
+
+// ── מודל המשתמש ──
+model User {
+  id           String   @id @default(uuid()) // מפתח ראשי — UUID ייחודי
+  email        String   @unique // אימייל — לא יכולים להיות שניים זהים
+  passwordHash String // הסיסמה המוצפנת (bcrypt). לעולם לא שומרים סיסמה גולמית!
+  displayName  String // שם התצוגה של המשתמש
+  createdAt    DateTime @default(now()) // נקבע אוטומטית ביצירה
+  updatedAt    DateTime @updatedAt // מתעדכן אוטומטית בכל שינוי
+
+  @@map("users") // שם הטבלה בפועל ב-DB יהיה "users"
+}
