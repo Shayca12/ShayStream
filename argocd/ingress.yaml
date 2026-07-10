@@ -1,0 +1,19 @@
+# Ingress ל-UI של ArgoCD — גישה דרך http://argocd.localhost:8090
+# (ArgoCD מורץ ב-insecure mode מקומית כדי לא להתעסק ב-TLS).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  rules:
+    - host: argocd.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 80
