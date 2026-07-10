@@ -49,5 +49,21 @@ services:
       retries: 5
       start_period: 20s # זמן חסד להתנעה (בנייה, מיגרציות)
 
+  minio:
+    image: minio/minio:latest
+    container_name: shaystream-minio
+    restart: unless-stopped
+    # server /data = מאחסן ב-/data. --console-address = הפורט של ממשק הווב.
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - '${MINIO_API_PORT:-9000}:9000' # S3 API — כאן השירותים מדברים עם MinIO
+      - '${MINIO_CONSOLE_PORT:-9001}:9001' # ממשק הווב — כאן *אתה* רואה את הקבצים
+    volumes:
+      - minio_data:/data # הקבצים שורדים גם אחרי כיבוי
+
 volumes:
   postgres_data: # "named volume" מנוהל ע"י Docker — כאן חיים קבצי ה-DB
+  minio_data: # כאן MinIO שומר את קבצי הווידאו
