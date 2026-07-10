@@ -58,6 +58,10 @@ export const api = {
     return fetch(`${MEDIA_URL}/media/videos`).then(handle);
   },
 
+  getVideo(id: string): Promise<Video> {
+    return fetch(`${MEDIA_URL}/media/videos/${id}`).then(handle);
+  },
+
   // כתובת ההזרמה של סרטון — נותנים אותה ישירות ל-<video src>.
   streamUrl(id: string): string {
     return `${STREAM_URL}/stream/${id}`;
