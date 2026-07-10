@@ -1,0 +1,7 @@
+{
+  "name": "shaystream",
+  "version": "0.1.0",
+  "description": "ShayStream — ענן מדיה אישי (מיקרו-סרוויסים). גרסת המוצר הכוללת.",
+  "private": true,
+  "license": "MIT"
+}
