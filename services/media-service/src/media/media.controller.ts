@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   UploadedFile,
   UseGuards,
@@ -34,5 +35,11 @@ export class MediaController {
   @Get('videos')
   list() {
     return this.mediaService.listAll();
+  }
+
+  // GET /media/videos/:id — מטא-דאטה של סרטון בודד. stream-service קורא לזה.
+  @Get('videos/:id')
+  getOne(@Param('id') id: string) {
+    return this.mediaService.getOne(id);
   }
 }
