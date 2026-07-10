@@ -95,6 +95,35 @@ services:
       retries: 5
       start_period: 20s
 
+  stream-service:
+    build:
+      context: ./services/stream-service
+    container_name: shaystream-stream
+    restart: unless-stopped
+    depends_on:
+      media-service:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    environment:
+      PORT: 3005
+      # מדבר עם media ו-minio דרך רשת ה-compose (שמות שירותים)
+      MEDIA_SERVICE_URL: http://media-service:3002
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: 'false'
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+    ports:
+      - '3005:3005'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3005/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
 volumes:
   postgres_data: # "named volume" מנוהל ע"י Docker — כאן חיים קבצי ה-DB
   minio_data: # כאן MinIO שומר את קבצי הווידאו
