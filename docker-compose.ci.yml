@@ -1,0 +1,33 @@
+# ─────────────────────────────────────────────────────────────
+#  תשתית CI — Jenkins + Registry מקומי. נפרד מ-docker-compose.yml.
+#  הפעלה:  docker compose -f docker-compose.ci.yml up -d
+# ─────────────────────────────────────────────────────────────
+name: shaystream-ci
+
+services:
+  jenkins:
+    build:
+      context: ./ci/jenkins
+    container_name: shaystream-jenkins
+    restart: unless-stopped
+    # רץ כ-root כדי לגשת לסוקט של Docker (סביבת למידה מקומית).
+    user: root
+    ports:
+      - '8080:8080' # ממשק הווב
+      - '50000:50000' # תקשורת agents (לעתיד)
+    volumes:
+      - jenkins_home:/var/jenkins_home # ההגדרות/jobs שורדים כיבוי
+      - /var/run/docker.sock:/var/run/docker.sock # גישה ל-Docker של ה-host
+
+  registry:
+    image: registry:2
+    container_name: shaystream-registry
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    volumes:
+      - registry_data:/var/lib/registry # ה-images שורדים כיבוי
+
+volumes:
+  jenkins_home:
+  registry_data:
