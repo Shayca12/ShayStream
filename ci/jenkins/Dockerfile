@@ -1,14 +1,15 @@
-# Jenkins LTS + Docker CLI.
-# Jenkins יבנה images באמצעות ה-Docker daemon של ה-host (mount של הסוקט),
-# ולכן צריך רק את ה-CLI בתוך הקונטיינר — לא daemon.
+# Jenkins LTS + Docker CLI (בינארי סטטי).
+# Jenkins בונה images באמצעות ה-Docker daemon של ה-host (mount של הסוקט),
+# ולכן צריך רק את ה-CLI. חבילת docker.io של Debian trixie לא כוללת את ה-CLI,
+# אז מורידים את הבינארי הסטטי הרשמי ישירות — פתרון נקי ובלי תלות במאגרים.
 FROM jenkins/jenkins:lts-jdk17
 
 USER root
 
-# מתקינים את ה-Docker CLI (החבילה docker.io כוללת אותו).
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends docker.io \
-  && rm -rf /var/lib/apt/lists/*
+ARG DOCKER_VERSION=27.3.1
+RUN curl -fsSL "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz" \
+  | tar -xz -C /usr/local/bin --strip-components=1 docker/docker \
+  && docker --version
 
 # נשארים root כדי שתהיה גישה לסוקט של Docker (מוגדר גם ב-compose).
 USER jenkins
