@@ -1,0 +1,30 @@
+# ערכי ברירת מחדל ל-chart. אפשר לדרוס עם -f או --set.
+
+postgres:
+  image: postgres:16-alpine
+  user: shaystream
+  password: devpassword
+  db: shaystream # מסד ברירת המחדל (של auth). shaystream_media נוצר בסקריפט init.
+  storage: 1Gi
+
+minio:
+  image: minio/minio:latest
+  rootUser: shaystream
+  rootPassword: devminiopassword
+  bucket: shaystream-media
+  storage: 2Gi
+
+jwt:
+  secret: dev-super-secret-change-me-in-prod
+  expiresIn: 1d
+
+# ה-images שלנו — יובאו ל-cluster עם k3d image import, ולכן pullPolicy: IfNotPresent.
+images:
+  auth: localhost:5000/shaystream/auth-service:latest
+  media: localhost:5000/shaystream/media-service:latest
+  stream: localhost:5000/shaystream/stream-service:latest
+  frontend: localhost:5000/shaystream/frontend:k8s
+  pullPolicy: IfNotPresent
+
+ingress:
+  host: shaystream.localhost

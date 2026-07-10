@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: media
+  template:
+    metadata:
+      labels:
+        app: media
+    spec:
+      containers:
+        - name: media
+          image: {{ .Values.images.media }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - containerPort: 3002
+          env:
+            - name: POSTGRES_USER
+              valueFrom: { secretKeyRef: { name: shaystream-secret, key: POSTGRES_USER } }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: shaystream-secret, key: POSTGRES_PASSWORD } }
+            - name: DATABASE_URL
+              value: 'postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/shaystream_media?schema=public'
+            - name: JWT_SECRET
+              valueFrom: { secretKeyRef: { name: shaystream-secret, key: JWT_SECRET } }
+            - name: PORT
+              value: '3002'
+            - name: MINIO_ENDPOINT
+              value: 'minio'
+            - name: MINIO_PORT
+              value: '9000'
+            - name: MINIO_USE_SSL
+              value: 'false'
+            - name: MINIO_ACCESS_KEY
+              valueFrom: { secretKeyRef: { name: shaystream-secret, key: MINIO_ROOT_USER } }
+            - name: MINIO_SECRET_KEY
+              valueFrom: { secretKeyRef: { name: shaystream-secret, key: MINIO_ROOT_PASSWORD } }
+            - name: MINIO_BUCKET
+              value: {{ .Values.minio.bucket | quote }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: media
+spec:
+  selector:
+    app: media
+  ports:
+    - port: 3002
+      targetPort: 3002

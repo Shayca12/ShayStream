@@ -1,0 +1,77 @@
+# ── ConfigMap: סקריפט אתחול שיוצר את מסד shaystream_media ──
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+data:
+  01-create-databases.sql: |
+    SELECT 'CREATE DATABASE shaystream_media'
+    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'shaystream_media')\gexec
+---
+# ── PVC: אחסון מתמיד לנתוני ה-DB ──
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+spec:
+  accessModes: ['ReadWriteOnce']
+  resources:
+    requests:
+      storage: {{ .Values.postgres.storage }}
+---
+# ── Deployment: הרצת Postgres ──
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          ports:
+            - containerPort: 5432
+          # PGDATA בתת-תיקייה — נוהג מקובל כשמאחסנים על volume.
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          envFrom:
+            - secretRef:
+                name: shaystream-secret
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+          readinessProbe:
+            exec:
+              command: ['pg_isready', '-U', '{{ .Values.postgres.user }}']
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+        - name: init
+          configMap:
+            name: postgres-init
+---
+# ── Service: כתובת פנימית קבועה (postgres:5432) ──
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
