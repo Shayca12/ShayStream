@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stream
+  template:
+    metadata:
+      labels:
+        app: stream
+    spec:
+      containers:
+        - name: stream
+          image: {{ .Values.images.stream }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - containerPort: 3005
+          env:
+            - name: PORT
+              value: '3005'
+            # תקשורת בין-שירותית לפי שם ה-Service (media).
+            - name: MEDIA_SERVICE_URL
+              value: 'http://media:3002'
+            - name: MINIO_ENDPOINT
+              value: 'minio'
+            - name: MINIO_PORT
+              value: '9000'
+            - name: MINIO_USE_SSL
+              value: 'false'
+            - name: MINIO_ACCESS_KEY
+              valueFrom: { secretKeyRef: { name: shaystream-secret, key: MINIO_ROOT_USER } }
+            - name: MINIO_SECRET_KEY
+              valueFrom: { secretKeyRef: { name: shaystream-secret, key: MINIO_ROOT_PASSWORD } }
+            - name: MINIO_BUCKET
+              value: {{ .Values.minio.bucket | quote }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3005
+            initialDelaySeconds: 10
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stream
+spec:
+  selector:
+    app: stream
+  ports:
+    - port: 3005
+      targetPort: 3005
