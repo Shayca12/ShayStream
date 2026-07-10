@@ -24,5 +24,30 @@ services:
       timeout: 5s
       retries: 5
 
+  auth-service:
+    build:
+      context: ./services/auth-service # מאיזו תיקייה לבנות את הדימוי (שם ה-Dockerfile)
+    container_name: shaystream-auth
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy # יעלה רק אחרי ש-Postgres בריא
+    environment:
+      # נקודת הבנה חשובה: בתוך רשת ה-compose, שירותים מדברים ביניהם לפי
+      # *שם השירות* (postgres) ועל הפורט הפנימי (5432) — לא localhost:5434!
+      # ה-5434 הוא רק המיפוי ל-host מבחוץ.
+      DATABASE_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public'
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      PORT: 3001
+    ports:
+      - '3001:3001' # חושפים את השירות ל-host על פורט 3001
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3001/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s # זמן חסד להתנעה (בנייה, מיגרציות)
+
 volumes:
   postgres_data: # "named volume" מנוהל ע"י Docker — כאן חיים קבצי ה-DB
