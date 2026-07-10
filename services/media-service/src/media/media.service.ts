@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../storage/minio.service';
@@ -44,5 +48,14 @@ export class MediaService {
   // מחזיר את כל הסרטונים (החדשים קודם). בהמשך נסנן לפי הרשאות/שיתופים.
   listAll() {
     return this.prisma.video.findMany({ orderBy: { createdAt: 'desc' } });
+  }
+
+  // מחזיר סרטון בודד לפי id (או 404). stream-service משתמש בזה כדי לקבל את ה-objectKey.
+  async getOne(id: string) {
+    const video = await this.prisma.video.findUnique({ where: { id } });
+    if (!video) {
+      throw new NotFoundException('סרטון לא נמצא');
+    }
+    return video;
   }
 }
