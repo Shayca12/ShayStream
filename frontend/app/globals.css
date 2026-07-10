@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+
+/* ─────────────────────────────────────────────
+   ShayStream — שפת עיצוב Cinematic כהה
+   ───────────────────────────────────────────── */
+:root {
+  --base: #0a0a0b; /* רקע כמעט-שחור */
+  --surface: #141416; /* משטח מוגבה (כרטיסים) */
+  --surface-2: #1d1d21; /* משטח מוגבה יותר */
+  --ink: #f5f5f7; /* טקסט ראשי */
+  --muted: #9a9aa4; /* טקסט משני */
+  --accent: #e11d48; /* אדום קולנועי */
+  --accent-2: #db2777; /* מגנטה */
+  --line: #26262c; /* גבולות */
+}
+
+/* Tailwind v4 — הופך את המשתנים לכלי-עזר (bg-base, text-ink, bg-accent...) */
+@theme inline {
+  --color-base: var(--base);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-line: var(--line);
+  --font-sans: var(--font-heebo);
+}
+
+body {
+  background: var(--base);
+  color: var(--ink);
+  font-family: var(--font-heebo), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* זוהר אקסנט לשימוש חוזר */
+.glow-accent {
+  box-shadow: 0 0 40px -8px var(--accent);
+}
+
+/* רקע gradient קולנועי עדין */
+.cinematic-bg {
+  background:
+    radial-gradient(60% 60% at 50% 0%, rgba(225, 29, 72, 0.13), transparent 70%),
+    radial-gradient(45% 45% at 100% 100%, rgba(219, 39, 119, 0.1), transparent 70%),
+    var(--base);
+}
+
+/* פס גלילה עדין בכהה */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-2);
+  border-radius: 999px;
+}
