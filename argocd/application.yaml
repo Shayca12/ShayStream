@@ -1,0 +1,27 @@
+# ArgoCD Application — מגדיר "מה לפרוס ומאיפה". גם זה קובץ ב-Git (GitOps).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shaystream
+  namespace: argocd
+spec:
+  project: default
+
+  # מקור האמת: ה-Helm chart שלנו, בענף develop.
+  source:
+    repoURL: https://github.com/Shayca12/ShayStream.git
+    targetRevision: develop
+    path: charts/shaystream
+    helm: {}
+
+  # יעד: אותו cluster, ל-namespace shaystream.
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shaystream
+
+  syncPolicy:
+    automated:
+      prune: true # מוחק משאבים שנמחקו מ-Git
+      selfHeal: true # מחזיר drift — אם משנים ידנית, מתקן חזרה למצב שב-Git
+    syncOptions:
+      - CreateNamespace=true
