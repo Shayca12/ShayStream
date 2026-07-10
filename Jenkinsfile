@@ -18,6 +18,18 @@ pipeline {
       }
     }
 
+    stage('Test services') {
+      steps {
+        script {
+          // מריצים את הטסטים בקונטיינר node נקי. --volumes-from נותן לו גישה
+          // ל-workspace של Jenkins (בגלל שאנחנו ב-docker-out-of-docker).
+          for (s in ['auth-service', 'media-service', 'stream-service']) {
+            sh "docker run --rm --volumes-from shaystream-jenkins -w \"\$WORKSPACE/services/${s}\" node:20-alpine sh -c 'npm ci && npm test'"
+          }
+        }
+      }
+    }
+
     stage('Build & Push services') {
       steps {
         script {
