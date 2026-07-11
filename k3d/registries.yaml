@@ -1,0 +1,7 @@
+# קונפיג של containerd (k3s) — מאפשר משיכת images מה-registry המקומי דרך HTTP.
+# מותקן בכל node ב-/etc/rancher/k3s/registries.yaml. "shaystream-registry" הוא שם
+# הקונטיינר של ה-registry ברשת של k3d (לכן הוא נגיש מתוך ה-cluster).
+mirrors:
+  'shaystream-registry:5000':
+    endpoint:
+      - 'http://shaystream-registry:5000'
